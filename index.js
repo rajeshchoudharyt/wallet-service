@@ -2,6 +2,8 @@
 
 import Fastify from "fastify";
 import { contract, provider } from "./webSocketProvider.js";
+import { ethers } from "ethers";
+import { handleDepositEvent, handleWithdrawalEvent } from "./utils/supabase.js";
 
 const fastify = Fastify({ logger: true });
 
@@ -11,14 +13,48 @@ fastify.addHook("onClose", (instance) => {
 
 //
 // Contract event listeners
-contract.on("Deposit", (...args) => {
+contract.on("Deposit", async (from, amount, args) => {
 	console.log("deposit event");
-	console.log(args);
+
+	const block = await args.getBlock();
+	const timestamp = new Date(block.timestamp * 1000).toISOString();
+
+	let eventData = {
+		wallet_address: from,
+		latest_balance: ethers.utils.formatEther(amount),
+		events: [
+			{
+				type: args.event,
+				amount: ethers.utils.formatEther(amount),
+				txHash: args.transactionHash,
+				timestamp,
+			},
+		],
+	};
+
+	await handleDepositEvent(eventData, amount);
 });
 
-contract.on("Withdrawal", (...args) => {
+contract.on("Withdrawal", async (to, amount, args) => {
 	console.log("withdraw event");
-	console.log(args);
+
+	const block = await args.getBlock();
+	const timestamp = new Date(block.timestamp * 1000).toISOString();
+
+	let eventData = {
+		wallet_address: to,
+		latest_balance: ethers.utils.formatEther(amount),
+		events: [
+			{
+				type: args.event,
+				amount: ethers.utils.formatEther(amount),
+				txHash: args.transactionHash,
+				timestamp,
+			},
+		],
+	};
+
+	await handleWithdrawalEvent(eventData, amount);
 });
 
 //
