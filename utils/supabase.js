@@ -4,7 +4,15 @@ import { ethers } from "ethers";
 
 export const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
 
-//
+// To fetch all rows from "Ledger" table
+export async function fetchLedgerRows() {
+	const { data, error } = await supabase.from("Ledger").select();
+
+	if (error) console.log("Error while fetching:", error);
+	return data;
+}
+
+// To fetch single row from "Ledger" table
 async function fetchLedgerRow(wallet_address) {
 	const { data, error } = await supabase
 		.from("Ledger")

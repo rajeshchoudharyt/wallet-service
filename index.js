@@ -3,7 +3,11 @@
 import Fastify from "fastify";
 import { contract, provider } from "./webSocketProvider.js";
 import { ethers } from "ethers";
-import { handleDepositEvent, handleWithdrawalEvent } from "./utils/supabase.js";
+import {
+	fetchLedgerRows,
+	handleDepositEvent,
+	handleWithdrawalEvent,
+} from "./utils/supabase.js";
 
 const fastify = Fastify({ logger: true });
 
@@ -35,6 +39,7 @@ contract.on("Deposit", async (from, amount, args) => {
 	await handleDepositEvent(eventData, amount);
 });
 
+//
 contract.on("Withdrawal", async (to, amount, args) => {
 	console.log("withdraw event");
 
@@ -58,12 +63,24 @@ contract.on("Withdrawal", async (to, amount, args) => {
 });
 
 //
-//
+// Route handlers
 
 fastify.get("/", async (req, res) => {
 	res.send({ hello: "world" });
 });
 
+// To return database table "Ledger"
+fastify.get("/api/ledger", async (req, res) => {
+	const data = await fetchLedgerRows();
+
+	const parsedData = data.map((obj) => {
+		obj.latest_balance = obj.latest_balance.toFixed(18).toString();
+		return obj;
+	});
+	res.send(parsedData);
+});
+
+//
 fastify.listen({ port: 3001 }, (err, address) => {
 	if (err) {
 		fastify.log(err);
