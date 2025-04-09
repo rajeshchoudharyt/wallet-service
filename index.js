@@ -8,6 +8,7 @@ import {
 	handleDepositEvent,
 	handleWithdrawalEvent,
 } from "./utils/supabase.js";
+import { env } from "./utils/env.js";
 
 const fastify = Fastify({ logger: true });
 
@@ -79,6 +80,15 @@ fastify.get("/api/ledger", async (req, res) => {
 	});
 	res.send(parsedData);
 });
+
+//
+// Cron job - To keep app spinning (Inactivity timeout - 15 min)
+// Only applicable to render
+try {
+	setInterval(() => {
+		fetch(env.FASTIFY_BACKEND_URL);
+	}, 14 * 60 * 1000);
+} catch (err) {}
 
 //
 fastify.listen({ port: 3001 }, (err, address) => {
