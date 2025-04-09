@@ -1,4 +1,4 @@
-const contractAddress = "0x1D60C643337a6a3678f14FfDa8A9b5b50F294fa1";
+const contractAddress = "0x57Eb6aB132054787553348A0570D36a8bc260be9";
 
 const contractABI = JSON.stringify([
 	{
