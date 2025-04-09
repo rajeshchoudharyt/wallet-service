@@ -1,10 +1,30 @@
 "use strict";
 
 import Fastify from "fastify";
+import { contract, provider } from "./webSocketProvider.js";
 
 const fastify = Fastify({ logger: true });
 
-fastify.get("/", (req, res) => {
+fastify.addHook("onClose", (instance) => {
+	provider.websocket.close();
+});
+
+//
+// Contract event listeners
+contract.on("Deposit", (...args) => {
+	console.log("deposit event");
+	console.log(args);
+});
+
+contract.on("Withdrawal", (...args) => {
+	console.log("withdraw event");
+	console.log(args);
+});
+
+//
+//
+
+fastify.get("/", async (req, res) => {
 	res.send({ hello: "world" });
 });
 
@@ -13,7 +33,9 @@ fastify.listen({ port: 3001 }, (err, address) => {
 		fastify.log(err);
 		process.exit(1);
 	}
-	console.log();
-});
 
-export default function () {}
+	// Logging websocket state
+	setInterval(() => {
+		console.log("Websocket state: ", provider.websocket.readyState);
+	}, 5000);
+});
