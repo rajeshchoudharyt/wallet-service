@@ -86,9 +86,4 @@ fastify.listen({ port: 3001 }, (err, address) => {
 		fastify.log(err);
 		process.exit(1);
 	}
-
-	// Logging websocket state
-	setInterval(() => {
-		console.log("Websocket state: ", provider.websocket.readyState);
-	}, 5000);
 });
