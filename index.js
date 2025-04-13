@@ -1,7 +1,7 @@
 "use strict";
 
 import Fastify from "fastify";
-import { contract, provider } from "./webSocketProvider.js";
+import { getContract, getProvider } from "./webSocketProvider.js";
 import { ethers } from "ethers";
 import {
 	fetchLedgerRows,
@@ -11,6 +11,9 @@ import {
 import { env } from "./utils/env.js";
 
 const fastify = Fastify({ logger: true });
+
+const contract = getContract();
+const provider = getProvider();
 
 fastify.addHook("onClose", (instance) => {
 	provider.websocket.close();
