@@ -14,7 +14,7 @@ async function connect() {
 
 	provider._websocket.on("close", async () => {
 		console.log("Websocket connection closed.");
-		setTimeout(() => { await connect() }, 5000);
+		setTimeout(async () => { await connect() }, 5000);
 	});
 
 	contract = new ethers.Contract(
