@@ -3,6 +3,7 @@ import { contractABI, contractAddress } from "./contracts/contract.js";
 import { env } from "./utils/env.js";
 
 let provider = null;
+let contract = null;
 
 async function connect() {
 	provider = new ethers.providers.WebSocketProvider(
@@ -13,18 +14,22 @@ async function connect() {
 
 	provider._websocket.on("close", async () => {
 		console.log("Websocket connection closed.");
-		await connect();
+		setTimeout(() => { await connect() }, 5000);
 	});
 
-	const contract = new ethers.Contract(
+	contract = new ethers.Contract(
 		contractAddress,
 		contractABI,
 		provider
 	);
+}
 
+await connect();
+
+export function getContract() {
 	return contract;
 }
 
-const contract = await connect();
-
-export { contract, provider };
+export function getProvider() {
+	return provider;
+}
