@@ -9,7 +9,8 @@ export async function fetchLedgerRows() {
 	const { data, error } = await supabase.from("Ledger").select();
 
 	if (error) console.log("Error while fetching:", error);
-	return data;
+
+	return { data, error };
 }
 
 // To fetch single row from "Ledger" table

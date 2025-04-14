@@ -1,21 +1,23 @@
 "use strict";
 
 import Fastify from "fastify";
-import { getContract, getProvider } from "./webSocketProvider.js";
+
 import { ethers } from "ethers";
+import { env } from "./utils/env.js";
+import { LedgerSchema } from "./utils/schema.js";
+import { getContract, getProvider } from "./webSocketProvider.js";
 import {
 	fetchLedgerRows,
 	handleDepositEvent,
 	handleWithdrawalEvent,
 } from "./utils/supabase.js";
-import { env } from "./utils/env.js";
 
 const fastify = Fastify({ logger: true });
 
 const contract = getContract();
 const provider = getProvider();
 
-fastify.addHook("onClose", (instance) => {
+fastify.addHook("onClose", () => {
 	provider.websocket.close();
 });
 
@@ -73,20 +75,33 @@ fastify.get("/", async (req, res) => {
 	res.send({ hello: "world" });
 });
 
+//
 // To return database table "Ledger"
 fastify.get("/api/ledger", async (req, res) => {
-	const data = await fetchLedgerRows();
+	const response = await fetchLedgerRows();
 
-	const parsedData = data.map((obj) => {
+	// Database error
+	if (response.error) {
+		res.send(response.error.message).statusCode(response.error.code);
+	}
+
+	try {
+		LedgerSchema.parse(response.data);
+	} catch (schemaError) {
+		res.send(schemaError.errors).statusCode(400); // Schema Validation error
+	}
+
+	const parsedData = response.data.map((obj) => {
 		obj.latest_balance = obj.latest_balance.toFixed(18).toString();
 		return obj;
 	});
+
 	res.send(parsedData);
 });
 
 //
 // Cron job - To keep app spinning (Inactivity timeout - 15 min)
-// Only applicable to render
+// Only applicable to render cloud deployment service
 try {
 	setInterval(() => {
 		fetch(env.FASTIFY_BACKEND_URL);
